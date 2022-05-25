@@ -17,15 +17,19 @@ class ChatViewController: UIViewController {
     var messages: [Message] = [
         Message(sender: "teste@teste.com", body: "Hey"),
         Message(sender: "a@teste.com", body: "Hello!"),
-        Message(sender: "teste@teste.com", body: "What's up?")
+        Message(sender: "teste@teste.com", body: "What's up? \n Are you ok? \n Whats going on?\n You are beautifull")
     ]
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        //registro do dataSource para usar no extended do Protocolo UITableViewDataSource
         tableView.dataSource = self
         title = K.appName
         navigationItem.hidesBackButton = true
+        
+        // registrando o nib (arquivo XIB)
+        tableView.register(UINib(nibName: K.cellNibName, bundle: nil), forCellReuseIdentifier: K.cellIdentifier)
         
     }
     
@@ -50,8 +54,8 @@ extension ChatViewController: UITableViewDataSource{
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: K.cellIdentifier, for: indexPath)
-        cell.textLabel?.text = messages[indexPath.row].body
+        let cell = tableView.dequeueReusableCell(withIdentifier: K.cellIdentifier, for: indexPath) as! MessageCell
+        cell.label.text = messages[indexPath.row].body
         return cell
     }
 }
