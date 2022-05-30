@@ -8,6 +8,7 @@
 
 import UIKit
 import Firebase
+import IQKeyboardManagerSwift // Package de terceiros para ajustar o Layout quando o teclado aparecer
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -16,9 +17,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
         FirebaseApp.configure() //Configurando o Firebase
         
-        let db = Firestore.firestore() // Configurando e inicializando o Firestore no App
+        _ = Firestore.firestore() // Configurando e inicializando o Firestore no App
         
-        print(db)
+        IQKeyboardManager.shared.enable = true //Propriedade para ativar o componente
+        IQKeyboardManager.shared.enableAutoToolbar = false //Desabilita o toolbar que a ferramenta gera
+        IQKeyboardManager.shared.shouldResignOnTouchOutside = true //Esconde o teclado ao clicar em alguma região fora do teclado
         
         return true
     }
