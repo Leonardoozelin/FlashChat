@@ -34,40 +34,44 @@ class ChatViewController: UIViewController {
     }
     
     final func loadMessages(){
-        messages = []
-        db.collection(K.FStore.collectionName).getDocuments { (querySnapshot, error) in
-            if let e = error {
-                print("There was an inssue retrieving data from Firestrore. \(e)")
-            } else {
-                if let snapshotDocuments = querySnapshot?.documents {
-                    for doc in snapshotDocuments {
-                        let data = doc.data()
-                        if let messageSender = data[K.FStore.senderField] as? String, let messageBody = data[K.FStore.bodyField] as? String {
-                            let newMessage = Message(sender: messageSender, body: messageBody)
-                            self.messages.append(newMessage)
-                            
-                            DispatchQueue.main.async { //deixa a consulta asyncrona e so ira chamar a funcao de reload apos terminar a consulta
-                                self.tableView.reloadData()
+        db.collection(K.FStore.collectionName)
+            .order(by: K.FStore.dateField) // OrderBy do Firestore
+            .addSnapshotListener { (querySnapshot, error) in // .addSnapShotListener deixa serve para deixar em real time a consulta no banco de dados
+                self.messages = []
+                if let e = error {
+                    print("There was an inssue retrieving data from Firestrore. \(e)")
+                } else {
+                    if let snapshotDocuments = querySnapshot?.documents {
+                        for doc in snapshotDocuments {
+                            let data = doc.data()
+                            if let messageSender = data[K.FStore.senderField] as? String, let messageBody = data[K.FStore.bodyField] as? String {
+                                let newMessage = Message(sender: messageSender, body: messageBody)
+                                self.messages.append(newMessage)
+                                
+                                DispatchQueue.main.async { //deixa a consulta asyncrona e so ira chamar a funcao de reload apos terminar a consulta
+                                    self.tableView.reloadData()
+                                }
                             }
                         }
                     }
                 }
             }
-        }
     }
     
     @IBAction func sendPressed(_ sender: UIButton) {
         
         if let messageBody = messageTextfield.text,
            let messageSender = Auth.auth().currentUser?.email{ // Pega o email da pessoa logada
-            db.collection(K.FStore.collectionName).addDocument(data: [K.FStore.senderField: messageSender,
-                                                                      K.FStore.bodyField: messageBody]) { (error) in
-                if let e = error{
-                    print("There was an issue saving data to firestore, \(e)")
-                }    else {
-                    print("Successfully saved data")
-                }
-            } // Salvando as mensagens no Firestore do Firabase.
+            db.collection(K.FStore.collectionName)
+                .addDocument(data: [K.FStore.senderField: messageSender,
+                                    K.FStore.bodyField: messageBody,
+                                    K.FStore.dateField: Date().timeIntervalSince1970]) { (error) in
+                    if let e = error{
+                        print("There was an issue saving data to firestore, \(e)")
+                    }    else {
+                        print("Successfully saved data")
+                    }
+                } // Salvando as mensagens no Firestore do Firabase.
         }
     }
     
