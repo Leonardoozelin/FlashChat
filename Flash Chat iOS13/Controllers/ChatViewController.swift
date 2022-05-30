@@ -16,11 +16,7 @@ class ChatViewController: UIViewController {
     
     let db = Firestore.firestore()
     
-    var messages: [Message] = [
-        Message(sender: "teste@teste.com", body: "Hey"),
-        Message(sender: "a@teste.com", body: "Hello!"),
-        Message(sender: "teste@teste.com", body: "What's up? \n Are you ok? \n Whats going on?\n You are beautifull")
-    ]
+    var messages: [Message] = []
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -33,6 +29,31 @@ class ChatViewController: UIViewController {
         // registrando o nib (arquivo XIB)
         tableView.register(UINib(nibName: K.cellNibName, bundle: nil), forCellReuseIdentifier: K.cellIdentifier)
         
+        loadMessages()
+        
+    }
+    
+    final func loadMessages(){
+        messages = []
+        db.collection(K.FStore.collectionName).getDocuments { (querySnapshot, error) in
+            if let e = error {
+                print("There was an inssue retrieving data from Firestrore. \(e)")
+            } else {
+                if let snapshotDocuments = querySnapshot?.documents {
+                    for doc in snapshotDocuments {
+                        let data = doc.data()
+                        if let messageSender = data[K.FStore.senderField] as? String, let messageBody = data[K.FStore.bodyField] as? String {
+                            let newMessage = Message(sender: messageSender, body: messageBody)
+                            self.messages.append(newMessage)
+                            
+                            DispatchQueue.main.async { //deixa a consulta asyncrona e so ira chamar a funcao de reload apos terminar a consulta
+                                self.tableView.reloadData()
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
     
     @IBAction func sendPressed(_ sender: UIButton) {
